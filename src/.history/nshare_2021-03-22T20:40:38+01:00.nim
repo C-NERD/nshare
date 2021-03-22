@@ -23,7 +23,7 @@ const homedir = getHomeDir()
 
 try:
   let ip = $getPrimaryIPAddr()
-  echo "Type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+  echo "Type {}:5000 in your browser\'s url bar on the receiving device".format([ip])
 
 except OSError:
   echo "Could not find wifi connection, make a connection to the receiving device to continue or use CTRL C to quit the application"
@@ -31,7 +31,7 @@ except OSError:
   while true:
     try:
       let ip = $getPrimaryIPAddr()
-      echo "Wifi connection found, type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+      echo "Wifi connection found, type {}:5000 in your browser\'s url bar on the receiving device".format([ip])
       break
       
     except:

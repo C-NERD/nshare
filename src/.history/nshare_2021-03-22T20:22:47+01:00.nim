@@ -3,7 +3,7 @@
 
 import jester
 from net import getPrimaryIPAddr, `$`
-from strutils import removePrefix, format
+from strutils import removePrefix
 from json import getStr, parseJson, `[]`, getElems, JsonNode
 from os import walkFiles, walkDir, PathComponent, getHomeDir, removeFile, joinPath
 from strutils import split, strip, contains, splitLines
@@ -22,29 +22,29 @@ type
 const homedir = getHomeDir()
 
 try:
-  let ip = $getPrimaryIPAddr()
-  echo "Type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+  let ip1 = $getPrimaryIPAddr()
+  echo "Type {}:5000 in your browser\'s url bar on the receiving device\n"
 
 except OSError:
-  echo "Could not find wifi connection, make a connection to the receiving device to continue or use CTRL C to quit the application"
+  echo "Could not find wifi connection, make a connection to the receiving device to continue or use CTRL C to quit the application\n"
 
   while true:
     try:
-      let ip = $getPrimaryIPAddr()
-      echo "Wifi connection found, type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+      let ip2 = $getPrimaryIPAddr()
+      echo "Connection found, type {}:5000 in your browser\'s url bar on the receiving device\n"
       break
       
     except:
       continue
 
 proc newfile(name, data : string) =
-  let dump = open(name, fmWrite)
+  var dump = open(name, fmWrite)
   dump.write(data)
   dump.flushFile
   dump.close
 
 proc packzip(name : string) : string =
-  let fdata = open(name & ".zip")
+  var fdata = open(name & ".zip")
   var finfo : string
   finfo.add(fdata.readAll)
   fdata.flushFile
@@ -61,21 +61,20 @@ when isMainModule:
       redirect uri("/client")
 
     get "/client":
-      let settings = readFile("public/nshare.json")
-      let parsed_settings = parseJson(settings)
-      let music = parsed_settings["musicext"].getStr
-      let image = parsed_settings["imageext"].getStr
-      let video = parsed_settings["videoext"].getStr
-      let document = parsed_settings["docext"].getStr
+      var msg = readFile("public/nshare.json")
+      var r_msg = parseJson(msg)
+      var music = r_msg["musicext"].getStr
+      var image = r_msg["imageext"].getStr
+      var video = r_msg["videoext"].getStr
+      var doc = r_msg["docext"].getStr
 
-      resp mainrender(client(music, image, video, document))
+      resp mainrender(client(music, image, video, doc))
 
     post "/client":
 
-      let settings = readFile("public/nshare.json")
-      let parsed_settings = parseJson(settings)
-      let location = parsed_settings["location"].getStr
-      
+      var msg = readFile("public/nshare.json")
+      var data = parseJson(msg)
+      var loc = data["location"].getStr
       var music = request.formData.getOrDefault("musicname").body
       music.removePrefix("""C:\fakepath\""")
 
@@ -89,21 +88,24 @@ when isMainModule:
       doc.removePrefix("""C:\fakepath\""")
 
       if music != "":
-        newfile(joinPath(location, music), request.formData.getOrDefault("music").body)
+        spawn newfile(joinPath(loc, music), request.formData.getOrDefault("music").body)
+        sync()
         redirect("/client")
 
       elif photo != "":
-        newfile(joinPath(location, photo), request.formData.getOrDefault("photo").body)
+        spawn newfile(joinPath(loc, photo), request.formData.getOrDefault("photo").body)
+        sync()
         redirect("/client")
       
       elif video != "":
-        newfile(joinPath(location, video), request.formData.getOrDefault("video").body)
+        spawn newfile(joinPath(loc, video), request.formData.getOrDefault("video").body)
+        sync()
         redirect("/client")
 
       elif doc != "":
-        newfile(joinPath(location, doc), request.formData.getOrDefault("doc").body)
+        spawn newfile(joinPath(loc, doc), request.formData.getOrDefault("doc").body)
+        sync()
         redirect("/client")
-        
       else:
         redirect("/client")
 

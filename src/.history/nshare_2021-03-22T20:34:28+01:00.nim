@@ -3,7 +3,7 @@
 
 import jester
 from net import getPrimaryIPAddr, `$`
-from strutils import removePrefix, format
+from strutils import removePrefix
 from json import getStr, parseJson, `[]`, getElems, JsonNode
 from os import walkFiles, walkDir, PathComponent, getHomeDir, removeFile, joinPath
 from strutils import split, strip, contains, splitLines
@@ -22,16 +22,16 @@ type
 const homedir = getHomeDir()
 
 try:
-  let ip = $getPrimaryIPAddr()
-  echo "Type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+  let ip1 = $getPrimaryIPAddr()
+  echo "Type {}:5000 in your browser\'s url bar on the receiving device\n"
 
 except OSError:
-  echo "Could not find wifi connection, make a connection to the receiving device to continue or use CTRL C to quit the application"
+  echo "Could not find wifi connection, make a connection to the receiving device to continue or use CTRL C to quit the application\n"
 
   while true:
     try:
-      let ip = $getPrimaryIPAddr()
-      echo "Wifi connection found, type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+      let ip2 = $getPrimaryIPAddr()
+      echo "Wifi connection found, type {}:5000 in your browser\'s url bar on the receiving device\n"
       break
       
     except:
@@ -74,7 +74,7 @@ when isMainModule:
 
       let settings = readFile("public/nshare.json")
       let parsed_settings = parseJson(settings)
-      let location = parsed_settings["location"].getStr
+      let location = data["location"].getStr
       
       var music = request.formData.getOrDefault("musicname").body
       music.removePrefix("""C:\fakepath\""")
