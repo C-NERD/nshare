@@ -8,7 +8,6 @@ from json import getStr, parseJson, `[]`, getElems, JsonNode
 from os import walkFiles, walkDir, PathComponent, getHomeDir, removeFile, joinPath
 from strutils import split, strip, contains, splitLines
 from sequtils import mapIt
-from threadpool import spawn, sync, FlowVar, spawnX, `^`
 import nsharepkg/zipper
 include "nsharepkg/views.tmpl"
 
@@ -249,14 +248,12 @@ when isMainModule:
 
       elif @"type" == "pcDir":
                 
-        spawn createZip(@"path")
-        sync()
+        createZip(@"path")
 
         try:
           attachment @"name" & ".zip"
-          var finfo = spawn packzip(@"name")
-          sync()
-          resp ^finfo
+          resp packzip(@"name")
+
         except:
           redirect uri("/server")
 
