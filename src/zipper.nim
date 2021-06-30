@@ -1,72 +1,118 @@
-import zip/zipfiles
-from os import walkDir
-from strutils import split, replaceWord
+import zip/zipfiles, logging, threadpool
+from os import walkDir, lastPathPart, normalizedPath, joinPath, fileExists
+from strutils import split, replaceWord, format
 from sequtils import filterIt
 
-proc zipappend(name, folder : string, dir : seq[string]) : seq[string] =
+proc zipAppend(name, folder: string, dir: seq[string],
+    logger: ConsoleLogger): seq[string] =
 
-  var item : ZipArchive
-  var dir = dir
-  var title = name.split("/")
-  discard item.open(title[^1] & ".zip", fmAppend)
+  var
+    item: ZipArchive
+    dir = dir
 
-  for kind, path in walkDir(folder):
+  let
+    title = lastPathPart(name)
 
-    if $kind == "pcDir":
-      try:  
-        item.createDir(path.replaceWord(name)[1..^1])
-        dir.add(path)
-      except:
+  if item.open(title & ".zip", fmAppend):
+    for kind, path in walkDir(folder):
+
+      if $kind == "pcDir":
+        try:
+
+          item.createDir(normalizedPath(path.replaceWord(name)))
+          dir.add(path)
+        except:
+
+          continue
+
+      elif $kind == "pcFile":
+        try:
+
+          item.addFile(normalizedPath(path.replaceWord(name)), path)
+        except:
+
+          continue
+
+      else:
         continue
 
-    elif $kind == "pcFile":
-      try:
-        item.addFile(path.replaceWord(name)[1..^1], path)
-      except:
+    item.close()
+    return dir
+
+  else:
+    logger.log(lvlError, "Unable to open file $1.zip".format([
+      title
+    ]))
+
+
+proc createZip*(name: string) =
+
+  var
+    item: ZipArchive
+    directory: seq[string]
+    oldirectory: seq[string]
+    ddirectory: seq[string]
+    logger = newConsoleLogger()
+
+  let
+    title = lastPathPart(name)
+
+  if item.open(title & ".zip", fmWrite):
+    for kind, path in walkDir(name, true):
+
+      if $kind == "pcDir":
+        try:
+
+          item.createDir(path)
+          directory.add(joinPath(name, path))
+        except:
+
+          continue
+
+      elif $kind == "pcFile":
+        try:
+
+          item.addFile(path, joinPath(name, path))
+        except:
+
+          continue
+
+      else:
+
         continue
 
-    else:
-      continue
+    item.close()
 
-  item.close()
-  return dir
+    while directory != oldirectory:
 
-proc createzip*(name : string) =
+      ddirectory = directory
+      for each in ddirectory:
+        if each notin oldirectory:
 
-  var item : ZipArchive
-  var title = name.split("/")
-  var dir : seq[string]
-  var oldir : seq[string]
-  var ddir : seq[string]
-  discard item.open(title[^1] & ".zip", fmWrite)
+          oldirectory.add(each)
+          let newdirectory = spawn zipAppend(name, each, directory, logger)
+          sync()
 
-  for kind, path in walkDir(name, true):
-  
-    if $kind == "pcDir":
-      try:  
-        item.createDir(path)
-        dir.add(name & "/" & path)
-      except:
-        continue
-
-    elif $kind == "pcFile":
-      try:
-        item.addFile(path, name & "/" & path)
-      except:
-        continue
-
-    else:
-      continue
-
-  item.close()
-
-  while dir != oldir:
-    ddir = dir
-    for each in ddir:
-        if each notin oldir:
-            oldir.add(each)
-            var ndir = zipappend(name, each, dir)
-            dir.add(ndir.filterIt(it notin dir))
+          directory.add((^newdirectory).filterIt(it notin directory))
         else:
-            continue
-  echo "zipped " & name
+
+          continue
+
+    logger.log(lvlNotice, "zipped $1".format([
+      name
+    ]))
+
+  else:
+
+    logger.log(lvlError, "Unable to create file $1.zip".format(title))
+
+when isMainModule:
+  from os import paramCount, paramStr
+
+  if paramCount() == 1:
+
+    if fileExists(paramStr(1)):
+
+      createZip(paramStr(1))
+    else:
+      echo "File does not exists"
