@@ -1,8 +1,8 @@
 # Package
 
 version       = "0.2.5"
-author        = "C_nerd"
-description   = "Web app for sharing documents via wifi"
+author        = "C-NERD"
+description   = "Web app for sharing files via wifi"
 license       = "MIT"
 srcDir        = "src"
 binDir        = "bin"
