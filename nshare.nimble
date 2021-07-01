@@ -5,14 +5,14 @@ author        = "C-NERD"
 description   = "Web app for sharing files via wifi"
 license       = "MIT"
 srcDir        = "src"
-binDir        = "bin"
+#binDir        = "bin"
 bin           = @["nshare"]
 
 backend       = "cpp"
 
 # Dependencies
 
-requires "nim >= 1.0.0", "jester >= 0.4.0", "zip >= 0.2.0"
+requires "nim >= 1.0.0", "jester >= 0.4.0", "zip >= 0.2.0", "nigui >= 0.2.5"
 
 task thread, "compiles with thread":
     exec "nim cpp -d:ssl -d:danger -d:release -o:bin/nshare --threads:on src/nshare"

@@ -1,5 +1,5 @@
 import zip/zipfiles, logging, threadpool
-from os import walkDir, lastPathPart, normalizedPath, joinPath, fileExists
+from os import walkDir, lastPathPart, normalizedPath, joinPath, fileExists, dirExists
 from strutils import split, replaceWord, format
 from sequtils import filterIt
 
@@ -43,7 +43,6 @@ proc zipAppend(name, folder: string, dir: seq[string],
     logger.log(lvlError, "Unable to open file $1.zip".format([
       title
     ]))
-
 
 proc createZip*(name: string) =
 
@@ -111,7 +110,7 @@ when isMainModule:
 
   if paramCount() == 1:
 
-    if fileExists(paramStr(1)):
+    if fileExists(paramStr(1)) or dirExists(paramStr(1)):
 
       createZip(paramStr(1))
     else:

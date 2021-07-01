@@ -1,260 +1,120 @@
-# This is just an example to get you started. A typical hybrid package
-# uses this file as the main entry point of the application.
-
-import jester
-from net import getPrimaryIPAddr, `$`
-from strutils import removePrefix, format
-from json import getStr, parseJson, `[]`, getElems, JsonNode
+import nigui
+from os import getAppDir, joinPath, fileExists
+#import jester, zipper, nigui
+#[from net import getPrimaryIPAddr, `$`
+from strutils import removePrefix, format, split, strip, contains, splitLines
 from os import walkFiles, walkDir, PathComponent, getHomeDir, removeFile, joinPath
-from strutils import split, strip, contains, splitLines
 from sequtils import mapIt
-import nsharepkg/zipper
-include "nsharepkg/views.tmpl"
+include "view.tmpl"]#
+
+const
+  wet_asphalt = rgb(52, 73, 94)
+  midnight_blue = rgb(44, 62, 80)
+  concrete = rgb(149, 165, 166)
+  albestos = rgb(127, 140, 141)
+  aliceblue = rgb(240, 248, 255)
+  white = rgb(255, 255, 255)
+  black = rgb(0, 0, 0)
+
+app.init()
+app.defaultBackgroundColor = aliceblue
 
 type
-    Content* = object
-        path* : string
-        name* : string
-        contenttype* : PathComponent
+
+  ImageButton = ref object of Button
+    image : string
+
+  Nav = ref object of Container
 
 
-const homedir = getHomeDir()
+method handleDrawEvent(control: ImageButton, event: DrawEvent) =
+  let 
+    canvas = event.control.canvas
+    image = newImage()
 
-try:
-  let ip = $getPrimaryIPAddr()
-  echo "Type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
+  image.loadFromFile(joinPath(getAppDir(), control.image))
 
-except OSError:
-  echo "Could not find wifi connection, make a connection to the receiving device to continue or use CTRL C to quit the application"
+  canvas.areaColor = control.backgroundColor()
+  canvas.textColor = control.textColor()
+  canvas.lineColor = control.backgroundColor()
+  canvas.drawRectArea(0, 0, control.width, control.height)
+  canvas.drawRectOutline(0, 0, control.width, control.height)
+  canvas.drawImage(image, 0, 0, control.width, control.height)
 
-  while true:
-    try:
-      let ip = $getPrimaryIPAddr()
-      echo "Wifi connection found, type $1:5000 in your browser\'s url bar on the receiving device".format([ip])
-      break
-      
-    except:
-      continue
+method handleDrawEvent(control: Nav, event: DrawEvent) =
+  let 
+    canvas = event.control.canvas
 
-proc newfile(name, data : string) =
-  let dump = open(name, fmWrite)
-  dump.write(data)
-  dump.flushFile
-  dump.close
+  canvas.areaColor = control.backgroundColor()
+  canvas.textColor = control.textColor()
+  canvas.lineColor = control.backgroundColor()
+  canvas.drawRectArea(0, 0, control.width, control.height)
+  canvas.drawRectOutline(0, 0, control.width, control.height)
 
-proc packzip(name : string) : string =
-  let fdata = open(name & ".zip")
-  var finfo : string
-  finfo.add(fdata.readAll)
-  fdata.flushFile
-  fdata.close
-  removeFile(name & ".zip")
 
-  return finfo
+proc serverside() =
+  proc setLayout(dimensions : tuple[width, height : int]) : tuple[container : Container, menu, app: LayoutContainer] {.closure.} =
+    let
+      container = new Nav
+      app = newLayoutContainer(Layout_Vertical)
+      menu = newLayoutContainer(Layout_Horizontal)
+      menubtns = [
+        "public/img/fileslight.png", 
+        "public/img/imagelight.png", 
+        "public/img/musiclight.png",
+        "public/img/videolight.png"
+      ]
+
+    container.height = dimensions.height
+    container.width = dimensions.width
+    container.setBackgroundColor(wet_asphalt)
+
+    menu.height = (dimensions.height / 8).toInt()
+    menu.width = (dimensions.width / 2).toInt()
+    menu.setBackgroundColor(wet_asphalt)
+    menu.scrollableHeight = 0
+    menu.scrollableWidth = 0
+
+    for img in menubtns:
+      let button = new ImageButton
+      button.init()
+      button.image = img
+      button.height = (menu.height / 2).toInt
+      button.width = (menu.height / 2).toInt
+      menu.add(button)
+
+    app.height = (dimensions.height - (menu.height + 20))
+    app.width = dimensions.width
+
+    container.add(app)
+    app.padding = 20
+    app.frame = newFrame("app")
+    #[app.x = 0
+    app.y = 0]#
+
+    container.add(menu)
+    menu.frame = newFrame("menu")
+    menu.spacing = 13
+    #[menu.x = ((dimensions.width - menu.width) / 2).toInt()
+    menu.y = app.height]#
+
+    return (container, menu, app)
+
+  let
+    mainWindow = newWindow("Nshare")
+    structure = setLayout((width : 800, height : 500))
+
+  mainWindow.width = 800
+  mainWindow.height = 500
+  mainWindow.centerOnScreen()
+
+  mainWindow.add(structure.container)
+  mainWindow.show()
 
 when isMainModule:
-  
-  routes:
+  serverside()
+  app.run()
+  #[routes:
 
     get "/":
-      redirect uri("/client")
-
-    get "/client":
-      let settings = readFile("public/nshare.json")
-      let parsed_settings = parseJson(settings)
-      let music = parsed_settings["musicext"].getStr
-      let image = parsed_settings["imageext"].getStr
-      let video = parsed_settings["videoext"].getStr
-      let document = parsed_settings["docext"].getStr
-
-      resp mainrender(client(music, image, video, document))
-
-    post "/client":
-
-      let settings = readFile("public/nshare.json")
-      let parsed_settings = parseJson(settings)
-      let location = parsed_settings["location"].getStr
-      
-      var music = request.formData.getOrDefault("musicname").body
-      music.removePrefix("""C:\fakepath\""")
-
-      var photo = request.formData.getOrDefault("photoname").body
-      photo.removePrefix("""C:\fakepath\""")
-      
-      var video = request.formData.getOrDefault("videoname").body
-      video.removePrefix("""C:\fakepath\""")
-
-      var doc = request.formData.getOrDefault("docname").body
-      doc.removePrefix("""C:\fakepath\""")
-
-      if music != "":
-        newfile(joinPath(location, music), request.formData.getOrDefault("music").body)
-        redirect("/client")
-
-      elif photo != "":
-        newfile(joinPath(location, photo), request.formData.getOrDefault("photo").body)
-        redirect("/client")
-      
-      elif video != "":
-        newfile(joinPath(location, video), request.formData.getOrDefault("video").body)
-        redirect("/client")
-
-      elif doc != "":
-        newfile(joinPath(location, doc), request.formData.getOrDefault("doc").body)
-        redirect("/client")
-        
-      else:
-        redirect("/client")
-
-    get "/server":
-      
-      var music : string
-      var rmusic : seq[Content]
-      var image : string
-      var rimage : seq[Content]
-      var video : string
-      var rvideo : seq[Content]
-      var doc : string
-      var rdoc : seq[Content]
-      var msg = readFile("public/nshare.json")
-      var data = parseJson(msg)
-      music = data["music"].getStr
-      image = data["image"].getStr
-      video = data["video"].getStr
-      doc = data["doc"].getStr
-      var musicext = data["musicext"].getStr
-      var imageext = data["imageext"].getStr
-      var videoext = data["videoext"].getStr
-      var docext = data["docext"].getStr
-
-
-      for each in music.split(','):
-        if each.contains(homedir):
-          try:
-            for ftype, files in walkDir(each.strip):
-              var segments = files.split({'/', '\\'})
-              var size = high(segments)
-              var ssize = high((segments[size].split(".")))
-              if (segments[size].split("."))[ssize] in musicext.split({',', '.'}) or ftype == pcDir:
-                rmusic.add(Content(path: files, name: segments[size], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-        else:
-          try:
-            for ftype, files in walkDir(homedir & each.strip):
-              var segments = files.split({'/', '\\'})
-              var size = high(segments)
-              var ssize = high((segments[size].split(".")))
-              if (segments[size].split("."))[ssize] in musicext.split({',', '.'}) or ftype == pcDir:
-                rmusic.add(Content(path: files, name: segments[size], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-      for each in image.split(','):
-        if each.contains(homedir):
-          try:
-            for ftype, files in walkDir(each.strip):
-              var segments = files.split({'/', '\\'})
-              var size = high(segments)
-              var ssize = high((segments[size].split(".")))
-              if (segments[size].split("."))[ssize] in imageext.split({',', '.'}) or ftype == pcDir:
-                rimage.add(Content(path: files, name: segments[size], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-        else:
-          try:
-            for ftype, files in walkDir(homedir & each.strip):
-              var segments = files.split({'/', '\\'})
-              var size = high(segments)
-              var ssize = high((segments[size].split(".")))
-              if (segments[size].split("."))[ssize] in imageext.split({',', '.'}) or ftype == pcDir:
-                rimage.add(Content(path: files, name: segments[size], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-      for each in video.split(','):
-        if each.contains(homedir):
-          try:
-            for ftype, files in walkDir(each.strip):
-              var segments = files.split({'/', '\\'})
-              var size = high(segments)
-              var ssize = high((segments[size].split(".")))
-              if (segments[size].split("."))[ssize] in videoext.split({',', '.'}) or ftype == pcDir:
-                rvideo.add(Content(path: files, name: segments[size], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-        else:
-          try:
-            for ftype, files in walkDir(homedir & each.strip):
-              var segments = files.split({'/', '\\'})
-              var size = high(segments)
-              var ssize = high((segments[size].split(".")))
-              if (segments[size].split("."))[ssize] in videoext.split({',', '.'}) or ftype == pcDir:
-                rvideo.add(Content(path: files, name: segments[size], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-      for each in doc.split(','):
-        if each.contains(homedir):
-          try:
-            for ftype, files in walkDir(each.strip):
-              var segments = files.split({'/', '\\'})
-              if (segments[^1].split("."))[^1] in docext.split({',', '.'}) or ftype == pcDir:
-                rdoc.add(Content(path: files, name: segments[^1], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-        else:
-          try:
-            for ftype, files in walkDir(homedir & each.strip):
-              var segments = files.split({'/', '\\'})
-              if (segments[^1].split("."))[^1] in docext.split({',', '.'}) or ftype == pcDir:
-                rdoc.add(Content(path: files, name: segments[^1], contenttype: ftype))
-              else:
-                continue
-          except:
-            continue
-
-      resp mainrender(server(rmusic.mapIt(it.name), rmusic.mapIt(it.path), rmusic.mapIt($it.contenttype), rimage.mapIt(it.name), rimage.mapIt(it.path), rimage.mapIt($it.contenttype), rvideo.mapIt(it.name), rvideo.mapIt(it.path), rvideo.mapIt($it.contenttype), rdoc.mapIt(it.name), rdoc.mapIt(it.path), rdoc.mapIt($it.contenttype)))
-
-    post "/server":
-
-      if @"type" == "pcFile":
-        var path = @"path"
-        var name = @"name"
-        
-        try:
-          attachment name
-          resp readFile path
-        except:
-          redirect uri("/server")
-
-      elif @"type" == "pcDir":
-                
-        createZip(@"path")
-
-        try:
-          attachment @"name" & ".zip"
-          resp packzip(@"name")
-
-        except:
-          redirect uri("/server")
-
-  runForever()
+      resp nshare("js/main.js", "css/main.css", "")]#
