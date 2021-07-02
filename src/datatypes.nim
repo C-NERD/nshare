@@ -13,3 +13,6 @@ type
 
     FileObj* = object
         name*, path*, ext* : string
+
+    UiSetting* = object
+        folders*, documents*, music*, videos*, images* : seq[FileObj]

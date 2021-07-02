@@ -1,55 +1,56 @@
 import jester, zipper, logging, datatypes
 #from net import getPrimaryIPAddr, `$`
-from json import to, parseFile, `%*`, `$`
+from json import to, parseFile, `%*`, `$`, `%`
 from os import getAppDir, joinPath, walkDir, lastPathPart, PathComponent, splitFile
 #from strutils import removePrefix, format, split, strip, contains, splitLines
 from sequtils import mapIt, concat
 include "view.tmpl"
 
+type
+
+  FileType = enum
+    document, music, video, image, folder
+
 let 
   logger = newConsoleLogger()
-  appsettings = parseFile(joinPath(getAppDir(), "public/settings.json")).to(Settings)
-  directories = concat(
-    appsettings.locations.document,
-    appsettings.locations.music,
-    appsettings.locations.video,
-    appsettings.locations.image,
-  )
 
-var
-  folders, music, images, videos, documents : seq[FileObj]
+proc getData(data : FileType) : seq[FileObj] =
 
-for dir in directories:
+  let appsettings = parseFile(joinPath(getAppDir(), "public/settings.json")).to(Settings)
+  var directories : tuple[locations, ext : seq[string]]
 
-  for folder in walkDir(dir):
-    
-    let ext = folder.path.splitFile.ext
-    case folder.kind:
+  case data:
 
-    of pcDir:
-      folders.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
+  of folder:
 
-    of pcFile:
+    directories = (locations : concat(
+      appsettings.locations.document,
+      appsettings.locations.music,
+      appsettings.locations.video,
+      appsettings.locations.image,
+    ), ext : @[""])
+  of document:
 
-      if dir in appsettings.locations.music and ext in appsettings.extensions.musicext:
+    directories = (appsettings.locations.document, appsettings.extensions.docext)
+  of music:
 
-        music.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
-      elif dir in appsettings.locations.document and ext in appsettings.extensions.docext:
+    directories = (appsettings.locations.music, appsettings.extensions.musicext)
+  of image:
 
-        documents.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
-      elif dir in appsettings.locations.video and ext in appsettings.extensions.videoext:
+    directories = (appsettings.locations.image, appsettings.extensions.imageext)
+  of video:
 
-        videos.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
-      elif dir in appsettings.locations.image and ext in appsettings.extensions.imageext:
+    directories = (appsettings.locations.video, appsettings.extensions.videoext)
 
-        images.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
-      else:
 
-        continue
+  for dir in directories.locations:
+    for folder in walkDir(dir):
 
-    else:
-      
-      continue
+      let ext = folder.path.splitFile.ext
+      if ext in directories.ext or folder.kind == pcDir:
+
+        result.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
+  
 
 router server:
 
@@ -57,19 +58,19 @@ router server:
     resp nshare("js/main", "css/main", "")
 
   post "/folder":
-    resp $(%*(folders))
+    resp $(%(getData(folder)))
 
   post "/music":
-    resp $(%*(music))
+    resp $(%(getData(music)))
 
   post "/image":
-    resp $(%*(images))
+    resp $(%(getData(image)))
 
   post "/video":
-    resp $(%*(videos))
+    resp $(%(getData(video)))
 
   post "/document":
-    resp $(%*(documents))
+    resp $(%(getData(document)))
 
 
 proc main() =
