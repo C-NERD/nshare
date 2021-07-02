@@ -17,7 +17,7 @@ proc main() =
 
     let
       port = Port(5000)
-      settings = newSettings(port = port, bindAddr = $getPrimaryIPAddr())
+      settings = newSettings(port = port)#, bindAddr = $getPrimaryIPAddr())
 
     var jester = initJester(server, settings)
     jester.serve()

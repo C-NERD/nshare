@@ -1,0 +1,117 @@
+:root{
+    --charleston-green: #2a2d2eff;
+    --ming: #246b78ff;
+    --light-blue: #aed0d6ff;
+    --midnight-green-eagle-green: #104e59ff;
+    --sky-blue-crayola: #43d6f0ff;
+    --light : #fefefe;
+    --lighttint : #f7f7f8;
+}
+
+html, body, #ROOT{
+    width: 100%;
+    height: 100%;
+    margin: 0 0 0 0;
+}
+
+#ROOT{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+nav{
+    height: 100%;
+    width: 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 2px 0 2px;
+    background: var(--charleston-green);
+}
+
+nav span{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+}
+
+nav #appbtns{
+    height: 50%;
+}
+
+nav #sudobtns{
+    height: 20%;
+}
+
+nav .btns{
+    width: 50px;
+    height: 50px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 40px;
+}
+
+nav .btnbackground{
+    width: 100%;
+    height: 100%;
+    border-radius: 100%;
+}
+
+/*nav .btnbackground:active{
+    background: var(--lighttint);
+}*/
+
+nav #folders{
+    background: url("../imgs/folder.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+nav #documents{
+    background: url("../imgs/files.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+nav #images{
+    background: url("../imgs/images.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+nav #videos{
+    background: url("../imgs/videos.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+nav #music{
+    background: url("../imgs/music.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+nav #modebtn{
+    background: url("../imgs/settings.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+nav #powerbtn{
+    background: url("../imgs/power.svg") no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+#mainsection{
+    width: 80%;
+    height: 90%;
+    padding: 20px 50px 20px 50px;
+    background: var(--light);
+    border: 1px solid black;
+}

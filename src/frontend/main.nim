@@ -60,11 +60,17 @@ proc sendToApi*(url : string, form : seq[tuple[keys, values : string]]) : Future
 proc main() : VNode =
     result = buildHtml(main):
         nav:
-            span(id = "btncontainer"):
-                for btn in ["documents", "videos", "music", "images"]:
-                    button(`type` = "button", id = btn)
+            span(id = "appbtns"):
+                for btn in ["folders", "documents", "videos", "music", "images"]:
+                    #button(`type` = "button", id = btn)
+                    tdiv(class = "btns", id = btn):
+                        tdiv(class = "btnbackground")
 
-            button(`type` = "button", id = "modebtn")
+            span(id = "sudobtns"):
+                for btn in ["modebtn", "powerbtn"]:
+                    #button(`type` = "button", id = btn)
+                    tdiv(class = "btns", id = btn):
+                        tdiv(class = "btnbackground")
 
         span(id = "mainsection")
 

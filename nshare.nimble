@@ -15,7 +15,7 @@ backend       = "c"
 requires "nim >= 1.0.0", "jester >= 0.4.0", "zip >= 0.2.0", "webview >= 0.1.0"
 
 task test, "compiles to executable for debugging":
-    exec "nim c -d:ssl --threads:on src/nshare"
+    exec "nim c -d:ssl -o:nshare --threads:on src/nshare"
     exec "nim js -o:public/js/main.js src/frontend/main"
 
 task frontend, "compiles the frontend code to javascript":
