@@ -1,4 +1,4 @@
-import karax / [karax, karaxdsl, vdom, kdom], asyncjs
+import karax / [karax, karaxdsl, vdom, kdom], asyncjs, datatypes
 from karax / kajax import ajaxPost, ajaxGet, newFormData, append
 from jsffi import to
 from json import parseJson, JsonNode
@@ -56,6 +56,9 @@ proc sendToApi*(url : string, form : seq[tuple[keys, values : string]]) : Future
             )
 
     return promise
+
+proc createFile*(file : FileObj) : VNode =
+    discard
 
 proc main() : VNode =
     result = buildHtml(main):

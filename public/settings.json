@@ -1,5 +1,5 @@
 {
-    "$schema": {
+    "settings": {
         "locations" : {
             "downloads" : "Downloads/",
             "document" : ["Documents/"],
