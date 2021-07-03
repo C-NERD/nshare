@@ -1,17 +1,15 @@
 {
-    "settings": {
-        "locations" : {
-            "downloads" : "Downloads/",
-            "document" : ["Documents/"],
-            "music" : ["Music/"],
-            "video" : ["Videos/"],
-            "image" : ["Picture/"]
-        },
-        "extensions" : {
-            "docext" : ["nim", "nims", "py", "pyc", "pdf", "kt", "kts", "js", "ts"],
-            "musicext" : ["mp3", "wav"],
-            "videoext" : ["mp4", "mkv"],
-            "imageext" : ["png", "jpeg", "jpg", "svg"]
-        }
+    "locations" : {
+        "downloads" : "Downloads/",
+        "document" : ["Documents/"],
+        "music" : ["Music/"],
+        "video" : ["Videos/"],
+        "image" : ["Pictures/"]
+    },
+    "extensions" : {
+        "docext" : ["nim", "nims", "py", "pyc", "pdf", "kt", "kts", "js", "ts"],
+        "musicext" : ["mp3", "wav"],
+        "videoext" : ["mp4", "mkv"],
+        "imageext" : ["png", "jpeg", "jpg", "svg"]
     }
 }

@@ -101,6 +101,7 @@ proc showFolders(ev : Event, n : VNode) =
         updateFolders(child, folders)
 
     parent.replaceChild(child, oldchild)    
+    settings.folders = folders
 
 proc showDocuments(ev : Event, n : VNode) =
     proc updateDocuments(parent : var Node, documents : var seq[FileObj]) =
@@ -129,6 +130,7 @@ proc showDocuments(ev : Event, n : VNode) =
         updateDocuments(child, documents)
 
     parent.replaceChild(child, oldchild)
+    settings.documents = documents
 
 proc showVideos(ev : Event, n : VNode) =
     proc updateVideos(parent : var Node, videos : var seq[FileObj]) =
@@ -157,6 +159,7 @@ proc showVideos(ev : Event, n : VNode) =
         updateVideos(child, videos)
 
     parent.replaceChild(child, oldchild)
+    settings.videos = videos
 
 proc showImages(ev : Event, n : VNode) =
     proc updateImages(parent : var Node, images : var seq[FileObj]) =
@@ -185,6 +188,42 @@ proc showImages(ev : Event, n : VNode) =
         updateImages(child, images)
 
     parent.replaceChild(child, oldchild)
+    settings.images = images
+
+proc showMusic(ev : Event, n : VNode) =
+    proc updateMusics(parent : var Node, musics : var seq[FileObj]) =
+        for each in musics:
+            parent.appendChild(createFile(each).vnodeToDom())
+
+    proc updateMusic(parent : var Node, musics : var seq[FileObj]) {.async.} =
+        let jsonmusics = await callOnApi("/music")
+        musics = jsonmusics.to(seq[FileObj])
+        updateMusics(parent, musics)
+
+    var 
+        musics : seq[FileObj] = settings.music
+        child = buildHtml(tdiv(id = "filecontainer")).vnodeToDom()
+
+    let
+        parent = document.getElementById("mainsection")
+        oldchild = document.getElementById("filecontainer")
+
+
+    if musics == @[]:
+
+        discard updateMusic(child, musics)
+    else:
+
+        updateMusics(child, musics)
+
+    parent.replaceChild(child, oldchild)
+    settings.music = musics
+
+proc shutDown(ev : Event, n : VNode) =
+    discard callOnApi("/quit")
+
+proc changeMode(ev : Event, n : Vnode) =
+    discard
 
 proc main() : VNode =
     result = buildHtml(main):
@@ -194,7 +233,7 @@ proc main() : VNode =
                     ("folders", showFolders), 
                     ("documents", showDocuments), 
                     ("videos", showVideos), 
-                    ("music", showVideos), 
+                    ("music", showMusic), 
                     ("images", showImages)
                 ]:
                     #button(`type` = "button", id = btn)
@@ -202,9 +241,12 @@ proc main() : VNode =
                         tdiv(class = "btnbackground")
 
             span(id = "sudobtns"):
-                for btn in ["modebtn", "powerbtn"]:
+                for btn in [
+                    ("modebtn", changeMode), 
+                    ("powerbtn", shutDown)
+                    ]:
                     #button(`type` = "button", id = btn)
-                    tdiv(class = "btns", id = btn):
+                    tdiv(class = "btns", id = btn[0], onclick = btn[1]):
                         tdiv(class = "btnbackground")
 
         span(id = "mainsection"):

@@ -1,8 +1,8 @@
 import jester, zipper, logging, datatypes
 #from net import getPrimaryIPAddr, `$`
 from json import to, parseFile, `%*`, `$`, `%`
-from os import getAppDir, joinPath, walkDir, lastPathPart, PathComponent, splitFile
-#from strutils import removePrefix, format, split, strip, contains, splitLines
+from os import getAppDir, joinPath, walkDir, lastPathPart, PathComponent, splitFile, getHomeDir
+from strutils import removePrefix, format
 from sequtils import mapIt, concat
 include "view.tmpl"
 
@@ -44,12 +44,13 @@ proc getData(data : FileType) : seq[FileObj] =
 
 
   for dir in directories.locations:
-    for folder in walkDir(dir):
+    for container in walkDir(joinPath(getHomeDir(), dir)):
 
-      let ext = folder.path.splitFile.ext
-      if ext in directories.ext or folder.kind == pcDir:
+      var ext = container.path.splitFile.ext
+      ext.removePrefix('.')
+      if ext in directories.ext or (container.kind == pcDir and data == folder):
 
-        result.add(FileObj(name : folder.path.lastPathPart(), path : folder.path, ext : ext))
+        result.add(FileObj(name : container.path.lastPathPart(), path : container.path, ext : ext))
   
 
 router server:
@@ -72,6 +73,8 @@ router server:
   post "/document":
     resp $(%(getData(document)))
 
+  post "/quit":
+    quit()
 
 proc main() =
   try:
