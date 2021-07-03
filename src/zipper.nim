@@ -44,7 +44,7 @@ proc zipAppend(name, folder: string, dir: seq[string],
       title
     ]))
 
-proc createZip*(name: string) =
+proc createZip*(name: string) : bool =
 
   var
     item: ZipArchive
@@ -58,7 +58,7 @@ proc createZip*(name: string) =
 
   if item.open(title & ".zip", fmWrite):
     for kind, path in walkDir(name, true):
-
+      
       if $kind == "pcDir":
         try:
 
@@ -100,10 +100,12 @@ proc createZip*(name: string) =
     logger.log(lvlNotice, "zipped $1".format([
       name
     ]))
+    return true
 
   else:
 
     logger.log(lvlError, "Unable to create file $1.zip".format(title))
+    return false
 
 when isMainModule:
   from os import paramCount, paramStr
@@ -112,6 +114,6 @@ when isMainModule:
 
     if fileExists(paramStr(1)) or dirExists(paramStr(1)):
 
-      createZip(paramStr(1))
+      discard createZip(paramStr(1))
     else:
       echo "File does not exists"

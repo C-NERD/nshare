@@ -1,7 +1,7 @@
 import jester, zipper, logging, datatypes
 #from net import getPrimaryIPAddr, `$`
 from json import to, parseFile, `%*`, `$`, `%`
-from os import getAppDir, joinPath, walkDir, lastPathPart, PathComponent, splitFile, getHomeDir
+from os import getAppDir, joinPath, walkDir, lastPathPart, PathComponent, splitFile, getHomeDir, dirExists, fileExists, removeFile, getFileSize
 from strutils import removePrefix, format
 from sequtils import mapIt, concat
 include "view.tmpl"
@@ -9,7 +9,7 @@ include "view.tmpl"
 type
 
   FileType = enum
-    document, music, video, image, folder
+    document, music, video, image, folder, downloads
 
 let 
   logger = newConsoleLogger()
@@ -21,6 +21,9 @@ proc getData(data : FileType) : seq[FileObj] =
 
   case data:
 
+  of downloads:
+
+    return @[FileObj(path : appsettings.locations.downloads)]
   of folder:
 
     directories = (locations : concat(
@@ -75,6 +78,58 @@ router server:
 
   post "/quit":
     quit()
+
+  post "/send":
+    let 
+      path = request.formData.getOrDefault("path").body
+      name = path.lastPathPart()
+      
+    if dirExists(path):
+
+      if createZip(path):
+
+        attachment name & ".zip"
+
+        let file = readFile(path & ".zip")
+        removeFile(path & ".zip")
+
+        resp file
+      else:
+
+        resp "Unable to send file"
+    elif fileExists(path):
+      
+      if getFileSize(path) > 20000000:
+
+        if createZip(path):
+
+          attachment name & ".zip"
+          
+          let file = readFile(path & ".zip")
+          removeFile(path & ".zip")
+
+          resp file
+        else:
+
+          resp "Unable to send file"
+      else:
+
+        attachment name
+        resp readFile(path)
+
+  post "/receive":
+    let
+      file = request.formData.getOrDefault("file").body
+      filename = request.formData.getOrDefault("filename").body
+      download = getData(downloads)[0].path
+    
+    try:
+
+      writeFile(joinPath(download, filename), file)
+      resp "successfull"
+    except:
+
+      resp "An error occured"
 
 proc main() =
   try:

@@ -170,7 +170,9 @@ nav #powerbtn{
 }
 
 .file .pdf{
-
+    background: url("../imgs/pdf.png") no-repeat;
+    background-size: contain;
+    background-position: center;
 }
 
 .file .kt, .file .kts{
