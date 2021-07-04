@@ -1,5 +1,5 @@
 import jester, zipper, logging, datatypes
-#from net import getPrimaryIPAddr, `$`
+from net import getPrimaryIPAddr, `$`
 from json import to, parseFile, `%*`, `$`, `%`
 from os import getAppDir, joinPath, walkDir, lastPathPart, PathComponent, splitFile, getHomeDir, dirExists, fileExists, removeFile, getFileSize
 from strutils import removePrefix, format
@@ -135,7 +135,7 @@ proc main() =
 
     let
       port = Port(5000)
-      settings = newSettings(port = port)#, bindAddr = $getPrimaryIPAddr())
+      settings = newSettings(port = port, bindAddr = $getPrimaryIPAddr())
 
     var jester = initJester(server, settings)
     jester.serve()

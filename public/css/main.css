@@ -261,3 +261,142 @@ nav #powerbtn{
     /*background: var(--ming);*/
     box-shadow: inset 4px 4px 6px rgba(146, 146, 146, 0.739);
 }
+
+@media only screen and (min-width: 768px) {
+    
+    nav{
+        width: 15%;
+        padding: 0 5px 0 5px;
+    }
+
+    nav .btns{
+        width: 80px;
+        height: 80px;
+        border-radius: 80px;
+    }
+
+    #mainsection{
+        width: 83%;
+    }
+    
+    .file{
+        width: 120px;
+        min-height: 70px;
+        margin: 15px 15px 15px 15px;
+    }
+    
+    .file div{
+        width: 80px;
+        height: 80px;
+    }
+
+    .file p{
+        font-size: x-large;
+    }
+    
+    #send label{
+        width: 80%;
+        height: 30%;
+    }
+    
+    #send label img{
+        height: 220px;
+    }
+    
+    #send button{
+        width: 200px;
+        height: 100px;
+        font-size: xx-large;
+        border-radius: 12px;
+    }
+}
+
+@media only screen and (min-width: 1024px) {
+    
+    nav{
+        width: 8%;
+    }
+
+    #mainsection{
+        width: 88%;
+    }
+    
+    .file{
+        width: 120px;
+        min-height: 80px;
+        margin: 15px 15px 15px 15px;
+    }
+    
+    .file div{
+        width: 80px;
+        height: 80px;
+    }
+
+    .file p{
+        font-size: x-large;
+    }
+    
+    #send label{
+        width: 60%;
+        height: 30%;
+    }
+    
+    #send label img{
+        height: 200px;
+    }
+    
+    #send button{
+        width: 200px;
+        height: 100px;
+        font-size: xx-large;
+        border-radius: 12px;
+    }
+}
+
+@media only screen and (min-width: 1366px) {
+    
+    nav{
+        width: 5%;
+    }
+
+    nav .btns{
+        width: 50px;
+        height: 50px;
+        border-radius: 40px;
+    }
+
+    #mainsection{
+        width: 95%;
+    }
+    
+    .file{
+        width: 80px;
+        min-height: 70px;
+        margin: 10px 10px 10px 10px;
+    }
+    
+    .file div{
+        width: 40px;
+        height: 40px;
+    }
+
+    .file p{
+        font-size: medium;
+    }
+    
+    #send label{
+        width: 40%;
+        height: 40%;
+    }
+    
+    #send label img{
+        height: 120px;
+    }
+    
+    #send button{
+        width: 100px;
+        height: 40px;
+        font-size: medium;
+        border-radius: 6px;
+    }
+}
