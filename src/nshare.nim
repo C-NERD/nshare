@@ -79,14 +79,14 @@ router server:
   post "/quit":
     quit()
 
-  post "/send":
+  get "/send":
     let 
-      path = request.formData.getOrDefault("path").body
+      path = @"path"
       name = path.lastPathPart()
       
     if dirExists(path):
-
-      if createZip(path):
+      let zip = createZip(path)
+      if zip:
 
         attachment name & ".zip"
 
@@ -100,8 +100,8 @@ router server:
     elif fileExists(path):
       
       if getFileSize(path) > 20000000:
-
-        if createZip(path):
+        let zip = createZip(path)
+        if zip:
 
           attachment name & ".zip"
           
@@ -124,8 +124,7 @@ router server:
       download = getData(downloads)[0].path
     
     try:
-
-      writeFile(joinPath(download, filename), file)
+      writeFile(joinPath(getHomeDir(), download, filename), file)
       resp "successfull"
     except:
 

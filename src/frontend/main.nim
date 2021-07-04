@@ -1,15 +1,27 @@
 import karax / [karax, karaxdsl, vdom, kdom], asyncjs, ../datatypes
 from karax / kajax import ajaxPost, ajaxGet, newFormData, append
-from jsffi import to
+#from jsffi import to
 from json import parseJson, JsonNode, to
 
-var settings : UiSetting = UiSetting(folders : @[], documents : @[], music : @[], videos : @[], images : @[])
+type
 
-proc toCstr*[T](item : T) : cstring =
+    Mode = enum
+        send, receive
+
+    Files = object
+        name, content : string
+
+var 
+    settings = UiSetting(folders : @[], documents : @[], music : @[], videos : @[], images : @[])
+    mode : Mode = receive
+
+proc readFiles(id : cstring) : seq[Files] {.importc.}
+
+proc toCstr[T](item : T) : cstring =
     let item : cstring = $item
     return item
 
-proc callOnApi*(url : string, useget : bool = false) : Future[JsonNode] =
+proc callOnApi(url : string, useget : bool = false) : Future[JsonNode] =
     let 
         url : cstring = url
 
@@ -37,12 +49,12 @@ proc callOnApi*(url : string, useget : bool = false) : Future[JsonNode] =
 
     return promise
 
-proc sendToApi*(url : string, form : seq[tuple[keys, values : string]]) : Future[JsonNode] =
+#[proc sendToApi(url : string, form : seq[tuple[keys, values : string]]) : Future[JsonNode] =
 
     var
         url : cstring = url
         info = newFormData()
-
+    
     for each in form:
         info.append(each.keys.toCstr, each.values.toCstr)
     
@@ -56,9 +68,9 @@ proc sendToApi*(url : string, form : seq[tuple[keys, values : string]]) : Future
                         resolve(jsonresp)
             )
 
-    return promise
+    return promise]#
 
-proc createFile*(file : FileObj) : VNode =
+proc createFile(file : FileObj) : VNode =
     var ext : string
 
     if file.ext == "":
@@ -68,11 +80,11 @@ proc createFile*(file : FileObj) : VNode =
 
         ext = file.ext
 
-    result = buildHtml(span(class = "file")):
-        input(`type` = "hidden", value = file.path)
-        tdiv(class = ext)
-        p:
-            text file.name
+    result = buildHtml(a(href = "/send?path=" & $encodeURIComponent(file.path))):
+        span(class = "file"):
+            tdiv(class = ext)
+            p:
+                text file.name
 
 proc showFolders(ev : Event, n : VNode) =
     proc updateFolders(parent : var Node, folders : var seq[FileObj]) =
@@ -223,11 +235,52 @@ proc shutDown(ev : Event, n : VNode) =
     discard callOnApi("/quit")
 
 proc changeMode(ev : Event, n : Vnode) =
-    discard
+    proc sendFiles(ev : Event, n : VNode) {.closure.} =
+        discard readFiles("selectfile")
+
+    proc receiveSection() : VNode =
+        result = buildHtml(tdiv(id = "filecontainer")):
+            span(id = "send"):
+                input(`type` = "file", id = "selectfile")
+                label(`for` = "selectfile", id = "fileselector", `multiple` = ""):
+                    img(src = "../imgs/file.svg")
+
+                button(`type` = "button", onclick = sendFiles):
+                    text "Send"
+
+    let
+        menu = buildHtml(span(id = "appbtns")):
+            for btn in [
+                ("folders", showFolders), 
+                ("documents", showDocuments), 
+                ("videos", showVideos), 
+                ("music", showMusic), 
+                ("images", showImages)
+            ]:
+                #button(`type` = "button", id = btn)
+                tdiv(class = "btns", id = btn[0], onclick = btn[1]):
+                    tdiv(class = "btnbackground")
+        appbtns = document.getElementById("appbtns")
+        parent = document.getElementById("navbar")
+        mainsection = document.getElementById("mainsection")
+        filecontainer = document.getElementById("filecontainer")
+
+    case mode:
+
+    of send:
+
+        parent.replaceChild(menu.vnodeToDom(), appbtns)
+        mainsection.replaceChild(buildHtml(tdiv(id = "filecontainer")).vnodeToDom(), filecontainer)
+        mode = receive
+    of receive:
+
+        parent.replaceChild(buildHtml(span(id = "appbtns")).vnodeToDom(), appbtns)
+        mainsection.replaceChild(receiveSection().vnodeToDom(), filecontainer)
+        mode = send
 
 proc main() : VNode =
     result = buildHtml(main):
-        nav:
+        nav(id = "navbar"):
             span(id = "appbtns"):
                 for btn in [
                     ("folders", showFolders), 

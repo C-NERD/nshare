@@ -13,7 +13,7 @@ proc zipAppend(name, folder: string, dir: seq[string],
   let
     title = lastPathPart(name)
 
-  if item.open(title & ".zip", fmAppend):
+  if item.open(name & ".zip", fmAppend):
     for kind, path in walkDir(folder):
 
       if $kind == "pcDir":
@@ -56,7 +56,7 @@ proc createZip*(name: string) : bool =
   let
     title = lastPathPart(name)
 
-  if item.open(title & ".zip", fmWrite):
+  if item.open(name & ".zip", fmWrite):
     for kind, path in walkDir(name, true):
       
       if $kind == "pcDir":
